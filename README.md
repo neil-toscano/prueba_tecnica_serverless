@@ -26,7 +26,7 @@ Crear una instancia RDS(MYSQL) y conectarse a dicha instancia y crear los bases 
 
 ```sql
 CREATE DATABASE IF NOT EXISTS medical_db_peru;
-USE medical_db_peru
+USE medical_db_peru;
 
 CREATE TABLE appointments_pe (
     id INT AUTO_INCREMENT PRIMARY KEY,
