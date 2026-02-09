@@ -1,0 +1,141 @@
+# ====================================
+# Node.js
+# ====================================
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Package manager locks (opcional - algunos equipos los commitean)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ====================================
+# TypeScript
+# ====================================
+
+# Compiled output
+dist/
+build/
+*.tsbuildinfo
+
+# ====================================
+# Serverless Framework
+# ====================================
+
+.serverless/
+.serverless_plugins/
+.build/
+
+# Auto-generated Swagger (si usas serverless-auto-swagger)
+swagger/
+
+# ====================================
+# Environment Variables
+# ====================================
+
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env*.local
+
+# ====================================
+# Testing
+# ====================================
+
+# coverage/
+# .nyc_output/
+# *.lcov
+
+# Jest
+jest-results.json
+
+# ====================================
+# IDE / Editors
+# ====================================
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# WebStorm / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# ====================================
+# Operating System
+# ====================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ====================================
+# Logs
+# ====================================
+
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# ====================================
+# Temporary files
+# ====================================
+
+tmp/
+temp/
+*.tmp
+
+# ====================================
+# AWS
+# ====================================
+
+# AWS SAM
+.aws-sam/
+
+# AWS credentials (NUNCA commitear)
+*.pem
+credentials
+
+# ====================================
+# Otros
+# ====================================
+
+# Editor backup files
+*~
+*.bak
+*.swp
+
+# Output de builds
+out/

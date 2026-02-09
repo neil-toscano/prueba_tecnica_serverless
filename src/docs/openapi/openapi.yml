@@ -1,0 +1,156 @@
+openapi: 3.0.0
+info:
+  title: Agendamiento de Citas Médicas
+  description: |
+    Sistema para el registro y consulta de citas médicas para Perú y Chile.
+    Implementa un flujo asíncrono basado en eventos.
+  version: 1.0.0
+
+servers:
+  - url: /
+    description: Servidor de Desarrollo (AWS API Gateway)
+
+tags:
+  - name: Appointments
+    description: Gestión y consulta de citas médicas
+
+paths:
+  /appointment:
+    post:
+      tags:
+        - Appointments
+      summary: Registrar una nueva petición de cita
+      description: Inicia el proceso de agendamiento enviando la petición.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+      responses:
+        '201':
+          description: Agendamiento creado exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedAppointmentResponse'
+        '400':
+          description: Error de validación en los datos de entrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+  /appointment/{insuredId}:
+    get:
+      tags:
+        - Appointments
+      summary: Listar peticiones por asegurado
+      description: Retorna el historial de citas vinculadas a un código de asegurado.
+      parameters:
+        - name: insuredId
+          in: path
+          required: true
+          description: Código del asegurado (exactamente 5 dígitos)
+          schema:
+            type: string
+            pattern: '^[0-9]{5}$'
+          example: "00004"
+      responses:
+        '200':
+          description: Listado de citas obtenido con éxito.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchAppointmentResponse'
+        '400':
+          description: Formato de insuredId incorrecto.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+
+components:
+  schemas:
+    AppointmentRequest:
+      type: object
+      required: [insuredId, scheduleId, countryISO]
+      properties:
+        insuredId:
+          type: string
+          description: Código del asegurado (exactamente 5 dígitos)
+          pattern: '^[0-9]{5}$'
+          example: "00123"
+        scheduleId:
+          type: integer
+          description: Identificador del horario médico
+          example: 100
+        countryISO:
+          type: string
+          description: Código del país (PE o CL)
+          enum: [PE, CL]
+          example: "PE"
+
+    AppointmentData:
+      type: object
+      properties:
+        appointmentId:
+          type: string
+          example: "9d653a1f-017f-4f07-a497-09f0897653f1"
+        insuredId:
+          type: string
+          example: "00123"
+        scheduleId:
+          type: integer
+          example: 100
+        countryISO:
+          type: string
+          example: "PE"
+        status:
+          type: string
+          enum: [PENDING, COMPLETED, FAILED]
+          example: "PENDING"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-02-09T08:08:10.128Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-02-09T08:08:10.128Z"
+
+    CreatedAppointmentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Cita creada correctamente"
+        data:
+          $ref: '#/components/schemas/AppointmentData'
+
+    SearchAppointmentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppointmentData'
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        errors:
+          type: array
+          items:
+            type: string
+          example:
+            - "insuredId: Debe tener exactamente 5 dígitos"

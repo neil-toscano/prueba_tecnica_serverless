@@ -1,0 +1,197 @@
+service: medical-appointments-prueba
+
+useDotenv: true
+
+provider:
+  name: aws
+  stage: ${opt:stage, env:STAGE, 'dev'}
+  runtime: nodejs22.x
+  region: ${env:REGION, 'us-east-1'}
+  httpApi:
+    cors: true
+  
+  environment:
+    APPOINTMENTS_TABLE_NAME: ${self:service}-appointments-${self:provider.stage}
+    APPOINTMENTS_TOPIC_ARN: !Ref AppointmentTopic
+    DB_HOST: ${env:DB_HOST}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    DB_PORT: ${env:DB_PORT}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:Query
+          Resource: !GetAtt AppointmentsTable.Arn
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource: !Ref AppointmentTopic
+        - Effect: Allow
+          Action:
+            - events:PutEvents
+          Resource: "arn:aws:events:us-east-1:*:event-bus/default"
+
+functions:
+  appointmentApi:
+    handler: dist/modules/appointment/infrastructure/entry-points/api-gateway/handlers/appointmentHandler.handler
+    events:
+      - httpApi:
+          path: /appointment
+          method: POST
+      - httpApi:
+          path: /appointment/{insuredId}
+          method: GET
+
+  swaggerDocs:
+    handler: dist/modules/appointment/infrastructure/entry-points/http/swaggerHandler.handler
+    events:
+      - httpApi:
+          path: /swagger
+          method: GET
+      - httpApi:
+          path: /swagger.json
+          method: GET
+      - httpApi:
+          path: /swagger.yaml
+          method: GET
+
+  appointmentStatusUpdater:
+    handler: dist/modules/appointment/infrastructure/entry-points/sqs/handlers/updateHandler.handler
+    events:
+      - sqs:
+          arn: !GetAtt AppointmentSyncQueue.Arn
+          batchSize: 5
+
+  peruProcessor:
+    handler: dist/modules/appointment/infrastructure/entry-points/sqs/handlers/peruHandler.handler
+    environment:
+      DB_NAME: ${env:DB_NAME_PERU}
+      DB_TABLE: ${env:DB_TABLE_PERU}
+    events:
+      - sqs:
+          arn: !GetAtt PeruQueue.Arn
+          batchSize: 10
+
+  chileProcessor:
+    handler: dist/modules/appointment/infrastructure/entry-points/sqs/handlers/chileHandler.handler
+    environment:
+      DB_NAME: ${env:DB_NAME_CHILE}
+      DB_TABLE: ${env:DB_TABLE_CHILE}
+    events:
+      - sqs:
+          arn: !GetAtt ChileQueue.Arn
+          batchSize: 10
+
+resources:
+  Resources:
+    # --- Almacenamiento ---
+    AppointmentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.APPOINTMENTS_TABLE_NAME}
+        AttributeDefinitions:
+          - AttributeName: insuredId
+            AttributeType: S
+          - AttributeName: appointmentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: insuredId
+            KeyType: HASH
+          - AttributeName: appointmentId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+
+    # --- Mensajería ---
+    AppointmentTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${self:service}-appointments-topic-${self:provider.stage}
+    
+    # --- 3 Colas SQS peru, chile y procesar completed ---
+    PeruQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-peru-queue-${self:provider.stage}
+
+    ChileQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-chile-queue-${self:provider.stage}
+
+    AppointmentSyncQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-status-sync-queue-${self:provider.stage}
+
+    # --- Políticas de Acceso ---
+    SqsQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - !Ref PeruQueue
+          - !Ref ChileQueue
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: "sns.amazonaws.com"
+              Action: "sqs:SendMessage"
+              Resource: "*"
+              Condition:
+                ArnEquals:
+                  aws:SourceArn: !Ref AppointmentTopic
+
+    SyncQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - !Ref AppointmentSyncQueue
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: "events.amazonaws.com"
+              Action: "sqs:SendMessage"
+              Resource: !GetAtt AppointmentSyncQueue.Arn
+
+    # --- Suscripciones SNS ---
+    PeruSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        TopicArn: !Ref AppointmentTopic
+        Endpoint: !GetAtt PeruQueue.Arn
+        RawMessageDelivery: true
+        Protocol: sqs
+        FilterPolicy:
+          countryISO: [PE]
+
+    ChileSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        TopicArn: !Ref AppointmentTopic
+        Endpoint: !GetAtt ChileQueue.Arn
+        RawMessageDelivery: true
+        Protocol: sqs
+        FilterPolicy:
+          countryISO: [CL]
+
+    # --- Regla de EventBridge ---
+    CatchAppointmentEventsRule:
+      Type: AWS::Events::Rule
+      Properties:
+        Name: ${self:service}-sync-status-rule-${self:provider.stage}
+        EventBusName: default
+        EventPattern:
+          source: ["app.appointments.service"]
+          detail-type: ["AppointmentCreated"]
+        Targets:
+          - Arn: !GetAtt AppointmentSyncQueue.Arn
+            Id: "StatusSyncTarget"
