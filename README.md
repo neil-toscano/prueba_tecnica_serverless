@@ -15,7 +15,7 @@ Acontinuación se detalla la arquitectura usada.
 ## 🛠️ Requisitos Previos
 
 * Node.js v22.x o superior.
-* Cuenta de AWS configurada localmente.
+* Cuenta de AWS configurada localmente y tener los (`permisos`) que se indican en el archivo serverles.yml - iam .
 * Serverless Framework instalado (`npm install -g serverless`).
 
 ## Para poder continuar es necesario crear la instancia RDS(MYSQL)
@@ -65,6 +65,9 @@ CREATE TABLE appointments_cl (
    ```bash
    git clone https...
    ```
+   ```bash
+   cd prueba_tecnica_serverless
+   ```
 2. **Instalar dependencias:**
    ```bash
     npm install
@@ -78,7 +81,12 @@ CREATE TABLE appointments_cl (
     ```sh
     npm run test:coverage
     ```
-5. **Desplegar a la nube**
+
+5. **Construir la app(dist):**
+    ```sh
+    npm run build
+    ```
+6. **Desplegar a la nube**
     ```ssh
     npx serverless deploy
     ```
