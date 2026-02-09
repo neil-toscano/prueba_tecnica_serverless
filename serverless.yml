@@ -1,4 +1,4 @@
-service: medical-appointments-prueba
+service: medical-test-service
 
 useDotenv: true
 
