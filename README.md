@@ -98,3 +98,13 @@ El proyecto incluye integración nativa con **Swagger**. Tras el despliegue, pue
 
 * **POST /appointment**: Registra una solicitud de cita.
 * **GET /appointment/{insuredId}**: Consulta el historial del asegurado.
+
+  ## Cobertura de pruebas unitarias
+
+<img width="1531" height="525" alt="image" src="https://github.com/user-attachments/assets/4b6a6335-f3fe-4112-be49-f29f8918f997" />
+
+### Resumen de Cobertura:
+* Business Logic (Use Cases): 100% Statements
+* Infrastructure (SNS/EventBridge, dynamaoDB): 77% Statements.
+* Domain Entities: 100% Statements.
+
