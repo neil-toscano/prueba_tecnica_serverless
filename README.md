@@ -1,6 +1,9 @@
 # Sistema de Agendamiento de Citas Médicas
 ## A. 📄 Documentación de Referencia
-[📄Descargar PDF de la Prueba Técnica](https://drive.google.com/file/d/1LFsRnRGON5aI_UJjt_q12t8L2E4YwrDJ/view?usp=sharing)
+
+* [📄Descargar PDF de la Prueba Técnica](https://drive.google.com/file/d/1LFsRnRGON5aI_UJjt_q12t8L2E4YwrDJ/view?usp=sharing)
+
+* 🌐 Url del proyecto desplegado [https://ahirwzro79.execute-api.us-east-1.amazonaws.com/swagger](https://ahirwzro79.execute-api.us-east-1.amazonaws.com/swagger)
 
 ### B. Arquitectura usada en el proyecto
 Acontinuación se detalla la arquitectura usada.
@@ -93,8 +96,9 @@ CREATE TABLE appointments_cl (
 
 ## 📖 Documentación de la API (Swagger)
 
-El proyecto incluye integración nativa con **Swagger**. Tras el despliegue, puedes acceder a la interfaz interactiva con la url de tu app: ejemplo
-`https://<api-id>.execute-api.us-east-1.amazonaws.com/swagger`
+El proyecto incluye integración nativa con **Swagger**. Tras el despliegue, puedes acceder a la interfaz interactiva con la url, aqui la url del proyecto desplegado.
+[Url de despliegue del proyecto](https://ahirwzro79.execute-api.us-east-1.amazonaws.com/swagger)
+
 
 * **POST /appointment**: Registra una solicitud de cita.
 * **GET /appointment/{insuredId}**: Consulta el historial del asegurado.
