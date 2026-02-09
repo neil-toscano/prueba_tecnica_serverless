@@ -5,7 +5,6 @@ import {
 import { IEventPublisher } from "../../../domain/ports/IEventPublisher";
 import { ConfirmedAppointmentDTO } from "../../../application/dtos/ConfAppointmentDTO";
 
-//TODO: REVISAR ESTOS VARIABLES
 const EVENT_SOURCE = "app.appointments.service";
 const DETAIL_TYPE = "AppointmentCreated";
 
@@ -34,7 +33,6 @@ export class EventBridgePublisher implements IEventPublisher {
 
                     Detail: JSON.stringify(eventPayload),
 
-                    //TODO: REVISAR ESA VARIABLE DE ENTORNO
                     EventBusName: process.env.EVENT_BUS_NAME || "default",
                 },
             ],
